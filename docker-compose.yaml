@@ -1,0 +1,12 @@
+version: '3'
+services:
+  categorizer-api:
+    image: ticket-categorizer-api:0.3-cuda
+    ports:
+      - 8080:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]

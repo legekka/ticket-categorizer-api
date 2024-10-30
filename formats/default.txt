@@ -1,0 +1,1 @@
+Partner: {partner} | Name: {contact} | Subject: {subject} | Message: {description}
