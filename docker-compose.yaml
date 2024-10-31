@@ -1,9 +1,14 @@
 version: '3'
 services:
   categorizer-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ticket-categorizer-api:0.3-cuda
     ports:
       - 8080:8000
+    env_file:
+      - .env
     deploy:
       resources:
         reservations:
