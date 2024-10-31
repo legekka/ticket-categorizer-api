@@ -1,2 +1,2 @@
 transformers
-fastapi
+fastapi==0.111.0
