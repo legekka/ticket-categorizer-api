@@ -1,26 +1,11 @@
 ARG IMAGE=pytorch/pytorch
-ARG TAG=latest
-ARG BASE=pytorch-cpu
+ARG TAG=2.4.1-cuda12.4-cudnn9-runtime
 
-FROM ubuntu:22.04 AS pytorch-cpu
+FROM ${IMAGE}:${TAG} AS base
 
-ARG PYTHON_VERSION=3.11
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        ccache \
-        cmake \
-        curl \
-        git \
-        libjpeg-dev \
-        libpng-dev python3-pip python${PYTHON_VERSION} && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get -y install libpq-dev gcc
 
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-FROM ${IMAGE}:${TAG} as pytorch
-
-FROM ${BASE}
 RUN adduser --no-create-home --home /opt/aiops aiops
 RUN mkdir -p /opt/aiops; chown aiops:aiops /opt/aiops
 
