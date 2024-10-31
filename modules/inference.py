@@ -18,8 +18,8 @@ class CategorizerInference:
         json_output = {
             "ticket_type": ticket_type,
             "priority": priority,
-            "osl": osl,
-            "oslt": oslt,
+            "operation_service_level": osl,
+            "operation_service_level_type": oslt,
             "user_grade": user_grade
         }
 

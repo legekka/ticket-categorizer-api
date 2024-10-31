@@ -1,8 +1,9 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from modules.inference import CategorizerInference
 from modules.tools import clean_text, Formatter
+from pydantic import BaseModel
 
 model_path = os.getenv("MODEL_PATH")
 if model_path is None:
@@ -36,14 +37,18 @@ async def categorize(ticket_text: str):
 
     return JSONResponse(content=json_output, status_code=200)
 
-@app.post("/tickets/CategorizeJson")
-async def categorize_json(ticket: dict):
+class Ticket(BaseModel):
+    partner: str
+    contact: str
+    subject: str
+    description: str
+
+@app.post("/tickets/CategorizeJson", response_model=Ticket)
+async def categorize_json(request: Request):
     """
     Calculates the categories and properties of a ticket text
-    Params are in JSON format {"ticket_text": "text"}
-    :param: ticket: dict: The ticket object from the database. Example: {"partner": "partner", "contact": "contact", "subject": "subject", "description": "description"}
-    :return: {}
     """
+    ticket = await request.json()
     
     # check the necessary fields
     if "partner" not in ticket:

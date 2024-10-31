@@ -28,15 +28,14 @@ class CategorizerModel:
         )
         inputs = {name: tensor.to(device) for name, tensor in inputs.items()}
         with torch.no_grad():
-            logits = self.model(**inputs).logits
+            logits = self.model(**inputs).logits[0]
         
         # do the softmax to get the probabilities and send back the id2label-ed string plus the probability in a dict
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        probs = probs.cpu().numpy().tolist()[0]
+        probs = probs.cpu().numpy().tolist()
         label_id = torch.argmax(logits, dim=-1).item()
         label = self.model.config.id2label[label_id]
-        
-        return {"category": label, "probability": float(probs[label_id])}
+        return {"category": label, "probability": probs[label_id]}
 
 class PriorityModel(CategorizerModel):
     def __init__(self, model_path):
@@ -78,6 +77,13 @@ class OslModel(CategorizerModel):
             return []
         
         return self.graph[partner_name].keys()
+    
+    def get_valid_class_ids(self, valid_classes):
+        ids = []
+        for cls in valid_classes:
+            if cls in self.model.config.label2id:
+                ids.append(self.model.config.label2id[cls])
+        return ids
 
     def predict(self, text, partner_name=None):
         inputs = self.tokenizer(
@@ -95,16 +101,16 @@ class OslModel(CategorizerModel):
             return {"category": None, "probability": 0.0}
         
         # Before we do the softmax, we will filter out the invalid classes
-        valid_classes_ids = [self.model.config.label2id[cls] for cls in valid_classes]
+        valid_classes_ids = self.get_valid_class_ids(valid_classes)
         logits = logits[0][valid_classes_ids] # only include the valid classes
 
         # do the softmax to get the probabilities and send back the id2label-ed string plus the probability in a dict
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        probs = probs.cpu().numpy().tolist()[0]
+        probs = probs.cpu().numpy().tolist()
         label_id = torch.argmax(logits, dim=-1).item()
         label = self.model.config.id2label[valid_classes_ids[label_id]]
 
-        return {"category": label, "probability": float(probs[label_id])}
+        return {"category": label, "probability": probs[label_id]}
 
     
 class OsltModel(CategorizerModel):
@@ -133,6 +139,13 @@ class OsltModel(CategorizerModel):
             valid_oslt_classes.append(self.graph[partner_name][osl_class])
         
         return valid_oslt_classes
+    
+    def get_valid_class_ids(self, valid_classes):
+        ids = []
+        for cls in valid_classes:
+            if cls in self.model.config.label2id:
+                ids.append(self.model.config.label2id[cls])
+        return ids
         
     def predict(self, text, partner_name=None):
         inputs = self.tokenizer(
@@ -148,13 +161,13 @@ class OsltModel(CategorizerModel):
         valid_classes = self.get_valid_classes(text, partner_name)
         
         # Before we do the softmax, we will filter out the invalid classes
-        valid_classes_ids = [self.model.config.label2id[cls] for cls in valid_classes]
+        valid_classes_ids = self.get_valid_class_ids(valid_classes)
         logits = logits[0][valid_classes_ids]
 
         # do the softmax to get the probabilities and send back the id2label-ed string plus the probability in a dict
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        probs = probs.cpu().numpy().tolist()[0]
+        probs = probs.cpu().numpy().tolist()
         label_id = torch.argmax(logits, dim=-1).item()
         label = self.model.config.id2label[valid_classes_ids[label_id]]
 
-        return {"category": label, "probability": float(probs[label_id])}
+        return {"category": label, "probability": probs[label_id]}
