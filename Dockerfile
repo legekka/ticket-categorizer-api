@@ -1,5 +1,5 @@
 ARG IMAGE=pytorch/pytorch
-ARG TAG=2.4.1-cuda12.4-cudnn9-runtime
+ARG TAG=2.6.0-cuda12.4-cudnn9-runtime
 
 FROM ${IMAGE}:${TAG} AS base
 
